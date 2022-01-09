@@ -8,3 +8,6 @@ dependencyResolutionManagement {
 }
 rootProject.name = "AndroidMediaLib"
 include ':app'
+include ':Video'
+include ':Audio'
+include ':MediaCodec'
