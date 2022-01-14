@@ -1,5 +1,5 @@
 package com.jonxiong.player
 
 enum class PlayState {
-    UN_KNOW, PLAYING, PAUSED, STOP
+    UN_KNOW, PREPARE, PLAYING, PAUSED, STOP
 }

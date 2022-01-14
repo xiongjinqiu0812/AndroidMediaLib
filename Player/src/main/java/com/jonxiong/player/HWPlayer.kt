@@ -5,15 +5,12 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Handler
-import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
 import android.view.Surface
-import com.jonxiong.player.decode.VideoPlayActivity
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.*
-import java.util.concurrent.locks.ReentrantLock
 
 class HWPlayer(private val context: Context) : BasePlayer() {
 
@@ -33,7 +30,7 @@ class HWPlayer(private val context: Context) : BasePlayer() {
 
 
     init {
-        playParams.playStats = PlayState.UN_KNOW
+        playParams.playState = PlayState.UN_KNOW
         handler = Handler(Looper.getMainLooper())
     }
 
@@ -47,10 +44,10 @@ class HWPlayer(private val context: Context) : BasePlayer() {
                     Log.d(TAG, "outputIndexQueue is empty")
                 }
 
-                if (playParams.playStats == PlayState.PLAYING) {
+                if (playParams.playState == PlayState.PLAYING) {
                     runnable?.let { handler.postDelayed(it, frameInterval) }
                 } else {
-                    Log.d(TAG, "playParams.playStats is ${playParams.playStats}")
+                    Log.d(TAG, "playParams.playStats is ${playParams.playState}")
                 }
             }
         }
@@ -73,7 +70,7 @@ class HWPlayer(private val context: Context) : BasePlayer() {
 
         checkRunnable()
 
-        when (playParams.playStats) {
+        when (playParams.playState) {
             PlayState.UN_KNOW, PlayState.STOP -> {
                 initMediaCodec(url)
                 runnable?.let {
@@ -84,7 +81,7 @@ class HWPlayer(private val context: Context) : BasePlayer() {
                 return
             }
             PlayState.PAUSED -> {
-                playParams.playStats = PlayState.PLAYING
+                playParams.playState = PlayState.PLAYING
                 handler.post { runnable }
             }
         }
@@ -172,7 +169,7 @@ class HWPlayer(private val context: Context) : BasePlayer() {
             ) {
                 if (info.flags.and(MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0 && !playParams.loop) {
                     Log.d(TAG, "outputFinish")
-                    playParams.playStats = PlayState.STOP
+                    playParams.playState = PlayState.STOP
                     return
                 }
                 outputIndexQueue.add(index)
@@ -187,20 +184,20 @@ class HWPlayer(private val context: Context) : BasePlayer() {
 
         })
 
-        playParams.playStats = PlayState.PLAYING
+        playParams.playState = PlayState.PLAYING
 
         mediaCodec?.configure(mediaFormat, surface, null, 0)
         mediaCodec?.start()
     }
 
     override fun pause() {
-        playParams.playStats = PlayState.PAUSED
+        playParams.playState = PlayState.PAUSED
         handler.removeCallbacksAndMessages(null)
     }
 
     override fun stop() {
         super.stop()
-        playParams.playStats = PlayState.STOP
+        playParams.playState = PlayState.STOP
         mediaExtractor?.release()
         mediaCodec?.release()
         handler.removeCallbacksAndMessages(null)
@@ -214,7 +211,7 @@ class HWPlayer(private val context: Context) : BasePlayer() {
 
     override fun release() {
         super.release()
-        playParams.playStats = PlayState.STOP
+        playParams.playState = PlayState.STOP
         mediaExtractor?.release()
         mediaCodec?.release()
         handler.removeCallbacksAndMessages(null)
