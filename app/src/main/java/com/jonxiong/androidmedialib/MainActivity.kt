@@ -4,8 +4,8 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
-import com.jonxiong.video.decode.VideoPlayActivity
-import com.jonxiong.video.record.CameraActivity
+import com.jonxiong.player.decode.VideoPlayActivity
+import com.jonxiong.player.record.CameraActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
