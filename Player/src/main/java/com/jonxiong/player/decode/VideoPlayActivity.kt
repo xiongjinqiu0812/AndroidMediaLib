@@ -1,23 +1,15 @@
 package com.jonxiong.player.decode
 
-import android.content.Context
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.jonxiong.player.BasePlayer
-import com.jonxiong.player.HWPlayer
+import com.jonxiong.player.PlayParams
 import com.jonxiong.player.R
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.util.*
+import com.jonxiong.player.a_player.BasePlayer
 
 
 class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
@@ -28,12 +20,14 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
     }
 
     private lateinit var surfaceView: SurfaceView
+    private lateinit var play: Button
+    private lateinit var pause: Button
     private lateinit var stop: Button
 
 
     private var handler: Handler? = null
-
     private var player: BasePlayer? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,13 +36,15 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
         surfaceView = findViewById(R.id.play_view)
         surfaceView.holder.addCallback(this)
 
+        play = findViewById(R.id.play)
+        play.setOnClickListener { player?.play(videoName) }
+
+        pause = findViewById(R.id.pause)
+        pause.setOnClickListener { player?.pause() }
+
         stop = findViewById(R.id.stop)
         stop.setOnClickListener { player?.stop() }
 
-        player = HWPlayer(this)
-        player?.playParams?.apply {
-            this.loop = true
-        }
 
         handler = Handler(Looper.getMainLooper())
 
@@ -61,13 +57,14 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
     override fun onDestroy() {
         super.onDestroy()
-        player?.release()
+        player?.releasePlayer()
     }
 
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        if (player is HWPlayer) {
-            (player as HWPlayer).setSurface(holder.surface)
+        player = BasePlayer(this, holder.surface).apply {
+            params.loop = true
+            params.avFlag = PlayParams.VIDEO_FLAG
         }
     }
 

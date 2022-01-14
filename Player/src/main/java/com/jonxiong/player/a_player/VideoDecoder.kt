@@ -10,7 +10,7 @@ class VideoDecoder(avFlag: Int, context: Context, playParams: PlayParams, var su
     BaseDecoder(avFlag, context, playParams) {
 
     companion object {
-        private const val TAG = "VideoDecoder"
+        private const val TAG = "JON_VideoDecoder"
     }
 
     override fun getSyncTime(): Long {
@@ -24,7 +24,7 @@ class VideoDecoder(avFlag: Int, context: Context, playParams: PlayParams, var su
 
     override fun handleOutputData(info: MediaCodec.BufferInfo): Boolean {
         val mediaCodec = this.mediaCodec ?: return false
-        var outputId: Int = mediaCodec.dequeueOutputBuffer(info, 0)
+        var outputId: Int = mediaCodec.dequeueOutputBuffer(info, 1000)
         while (outputId >= 0) {
 //            updateVideoStartUs(info.presentationTimeUs)
 //            videoTimeSync(info.presentationTimeUs)
@@ -40,11 +40,6 @@ class VideoDecoder(avFlag: Int, context: Context, playParams: PlayParams, var su
             outputId = mediaCodec.dequeueOutputBuffer(info, 0)
         }
         return false
-    }
-
-    override fun releaseDecoder() {
-        mediaCodec?.release()
-        extractor?.release()
     }
 
 

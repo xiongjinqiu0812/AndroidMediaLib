@@ -10,10 +10,10 @@ class PlayParams {
         val AUDIO_FLAG = 0x01 shl 2
     }
 
-    val avFlag = VIDEO_FLAG or AUDIO_FLAG
+    var avFlag = VIDEO_FLAG or AUDIO_FLAG
     val syncInfo = CodecSyncInfo.create()
 
-    var playState = PlayState.UN_KNOW
+//    var playState = PlayState.UN_KNOW
     var url: String = ""
     var loop: Boolean = false
     var seekPts: Long = -1L
@@ -21,7 +21,7 @@ class PlayParams {
     var frameInterval = 16L
 
     fun reset() {
-        playState = PlayState.UN_KNOW
+//        playState = PlayState.UN_KNOW
         url = ""
         loop = false
         seekPts = -1L

@@ -7,9 +7,7 @@ import android.media.MediaFormat
 import android.util.Log
 import com.jonxiong.player.PlayParams
 import com.jonxiong.player.PlayState
-import com.jonxiong.player.decode.DecodeState
 import java.io.IOException
-import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.math.max
@@ -17,14 +15,13 @@ import kotlin.math.max
 abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams: PlayParams) :
     IDecoder {
 
-    companion object {
-        private const val TAG = "BaseDecoder"
-    }
+
+    private val flag = if (avFlag == PlayParams.VIDEO_FLAG) "Video" else "Audio"
+    private val TAG = "JON_${flag}Decoder"
 
     protected val lock = ReentrantLock()
     protected val condition = lock.newCondition()
-
-    protected var decodeState = DecodeState.UN_KNOW
+    protected var decodeState = PlayState.UN_KNOW
 
     protected var mediaFormat: MediaFormat? = null
     protected var mediaCodec: MediaCodec? = null
@@ -35,74 +32,90 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
 //    protected var mOnRenderListener: OnRenderListener? = null
 
 
-    override fun changeState(state: DecodeState) {
+    override fun changeState(state: PlayState) {
         lock.lock()
+        val needNotify = decodeState == PlayState.PAUSED
         decodeState = state
-        condition.signalAll()
+        if (needNotify) {
+            condition.signal()
+        }
+        lock.unlock()
     }
 
     override fun run() {
         lock.lock()
-        //是否暂停
-        while (playParams.playState == PlayState.PAUSED) {
-            condition.await()
-        }
+
         //初始化
         if (!initMediaCodec()) {
-            lock.unlock()
             return
         }
 
+        decodeState = PlayState.PLAYING
+
         configMediaCodec()
 
-        while (playParams.playState == PlayState.PLAYING) {
-            //处理seek
-            if (playParams.seekPts >= 0) {
-                try {
-                    extractor?.seekTo(playParams.seekPts, playParams.seekMode)
-                } catch (e: Exception) {
-                    Log.e(TAG, "seek fail", e)
-                } finally {
-                    playParams.seekPts = -1L
-                }
+        var isFinish = false
+
+        while (!isFinish) {
+            if (decodeState == PlayState.STOP) {
+                Log.d(TAG, "PlayState.STOP, break")
+                break
+            }
+            //是否暂停
+            while (decodeState == PlayState.PAUSED) {
+                Log.d(TAG, "PlayState.PAUSED, wait")
+                condition.await()
             }
 
-            val mediaCodec = this.mediaCodec ?: break
-            val extractor = this.extractor ?: break
-
-            //解码
-            val inputBufferId = mediaCodec.dequeueInputBuffer(0)
-            if (inputBufferId >= 0) {
-                val inputBuffer = mediaCodec.getInputBuffer(inputBufferId)
-                if (inputBuffer != null) {
-                    val size: Int = extractor.readBuffer(inputBuffer)
-                    val sampleSize = max(size, 0)
-                    val sampleTime = if (size >= 0) extractor.sampleTime else 0L
-                    var sampleFlags = if (size >= 0) extractor.sampleFlags else 1
-                    if (size < 0) {
-                        if (!playParams.loop) {
-                            sampleFlags = sampleFlags or MediaCodec.BUFFER_FLAG_END_OF_STREAM
-                        } else {
-                            extractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
-                        }
+            while (decodeState == PlayState.PLAYING) {
+                //处理seek
+                if (playParams.seekPts >= 0) {
+                    try {
+                        extractor?.seekTo(playParams.seekPts, playParams.seekMode)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "seek fail", e)
+                    } finally {
+                        playParams.seekPts = -1L
                     }
-                    mediaCodec.queueInputBuffer(
-                        inputBufferId,
-                        0,
-                        sampleSize,
-                        sampleTime,
-                        sampleFlags
-                    )
                 }
 
-                val isFinish: Boolean = handleOutputData(mInfo)
-                if (isFinish) {
-                    decodeState = DecodeState.STOP
+                val mediaCodec = this.mediaCodec ?: break
+                val extractor = this.extractor ?: break
+                //解码
+                val inputBufferId = mediaCodec.dequeueInputBuffer(1000)
+                if (inputBufferId >= 0) {
+                    val inputBuffer = mediaCodec.getInputBuffer(inputBufferId)
+                    if (inputBuffer != null) {
+                        val size: Int = extractor.readBuffer(inputBuffer)
+                        val sampleSize = max(size, 0)
+                        val sampleTime = if (size >= 0) extractor.sampleTime else 0L
+                        var sampleFlags = if (size >= 0) extractor.sampleFlags else 1
+                        if (size < 0) {
+                            if (!playParams.loop) {
+                                sampleFlags = sampleFlags or MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                            } else {
+                                extractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+                            }
+                        }
+                        mediaCodec.queueInputBuffer(
+                            inputBufferId,
+                            0,
+                            sampleSize,
+                            sampleTime,
+                            sampleFlags
+                        )
+                    }
+                    isFinish = handleOutputData(mInfo)
+                    if (isFinish) {
+                        decodeState = PlayState.STOP
+                    }
                 }
+                condition.await(getSyncTime(), TimeUnit.MICROSECONDS)
             }
-
-            condition.await(getSyncTime(), TimeUnit.MICROSECONDS)
         }
+
+        releaseDecoder()
+
         lock.unlock()
     }
 
@@ -121,6 +134,12 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         return false
     }
 
+    override fun releaseDecoder() {
+        mediaCodec?.release()
+        Log.d(TAG, "mediaCodec release")
+        extractor?.release()
+        Log.d(TAG, "extractor release")
+    }
 
     abstract fun getSyncTime(): Long
 

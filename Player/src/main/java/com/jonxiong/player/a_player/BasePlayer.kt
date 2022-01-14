@@ -3,17 +3,17 @@ package com.jonxiong.player.a_player
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Surface
 import com.jonxiong.player.PlayParams
 import com.jonxiong.player.PlayState
-import com.jonxiong.player.decode.DecodeState
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
 
     companion object {
-        const val TAG = "BasePlayer"
+        private const val TAG = "JON_BasePlayer"
     }
 
     var params: PlayParams = PlayParams()
@@ -29,20 +29,21 @@ class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
         when (params.avFlag) {
             PlayParams.VIDEO_FLAG -> {
                 videoDecoder = VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface)
-                params.playState = PlayState.PREPARE
+                playState = PlayState.PREPARE
             }
             PlayParams.AUDIO_FLAG -> {
                 audioDecoder = AudioDecoder(PlayParams.AUDIO_FLAG, context, params)
-                params.playState = PlayState.PREPARE
+                playState = PlayState.PREPARE
             }
             PlayParams.VIDEO_FLAG or PlayParams.AUDIO_FLAG -> {
                 audioDecoder = AudioDecoder(PlayParams.AUDIO_FLAG, context, params)
                 videoDecoder = VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface)
-                params.playState = PlayState.PREPARE
+                playState = PlayState.PREPARE
             }
-            else -> params.playState = PlayState.UN_KNOW
+            else -> playState = PlayState.UN_KNOW
         }
 
+        Log.d(TAG, "init player")
     }
 
     override fun play(url: String) {
@@ -61,8 +62,8 @@ class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
         }
         //当前视频暂停
         if (params.url == url && playState == PlayState.PAUSED) {
-            audioDecoder?.changeState(DecodeState.DECODING)
-            videoDecoder?.changeState(DecodeState.DECODING)
+            audioDecoder?.changeState(PlayState.PLAYING)
+            videoDecoder?.changeState(PlayState.PLAYING)
             return
         }
 
@@ -77,20 +78,28 @@ class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
         videoDecoder?.let {
             executorService.execute(it)
         }
+
+        Log.d(TAG, "start player")
     }
 
     override fun pause() {
-        audioDecoder?.changeState(DecodeState.PAUSED)
-        videoDecoder?.changeState(DecodeState.PAUSED)
+        playState = PlayState.PAUSED
+        audioDecoder?.changeState(PlayState.PAUSED)
+        videoDecoder?.changeState(PlayState.PAUSED)
+        Log.d(TAG, "pause player")
     }
 
     override fun stop() {
-        audioDecoder?.releaseDecoder()
-        videoDecoder?.releaseDecoder()
+        playState = PlayState.STOP
+        audioDecoder?.changeState(PlayState.STOP)
+        videoDecoder?.changeState(PlayState.STOP)
+        Log.d(TAG, "stop player")
     }
 
     override fun releasePlayer() {
+        stop()
         executorService.shutdown()
+        Log.d(TAG, "release player")
     }
 
     override fun onStart() {
