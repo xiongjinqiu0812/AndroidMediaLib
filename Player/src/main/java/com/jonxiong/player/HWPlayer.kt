@@ -6,6 +6,7 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import com.jonxiong.player.decode.VideoPlayActivity
@@ -27,22 +28,18 @@ class HWPlayer(private val context: Context) : BasePlayer() {
     private var mediaFormat: MediaFormat? = null
     private var frameInterval = 0L
 
-    private val playThread: HandlerThread = HandlerThread("HWPlayer")
     private var handler: Handler
     private var runnable: Runnable? = null
 
-    private val lock = ReentrantLock()
 
     init {
         playParams.playStats = PlayState.UN_KNOW
-        playThread.start()
-        handler = Handler(playThread.looper)
+        handler = Handler(Looper.getMainLooper())
     }
 
     private fun checkRunnable() {
         if (runnable == null) {
             runnable = Runnable {
-                lock.lock()
                 handler.removeCallbacksAndMessages(null)
                 if (!outputIndexQueue.isEmpty()) {
                     mediaCodec?.releaseOutputBuffer(outputIndexQueue.removeFirst(), true)
@@ -55,7 +52,6 @@ class HWPlayer(private val context: Context) : BasePlayer() {
                 } else {
                     Log.d(TAG, "playParams.playStats is ${playParams.playStats}")
                 }
-                lock.unlock()
             }
         }
     }
@@ -88,9 +84,7 @@ class HWPlayer(private val context: Context) : BasePlayer() {
                 return
             }
             PlayState.PAUSED -> {
-                lock.lock()
                 playParams.playStats = PlayState.PLAYING
-                lock.unlock()
                 handler.post { runnable }
             }
         }
@@ -136,7 +130,6 @@ class HWPlayer(private val context: Context) : BasePlayer() {
         mediaCodec = MediaCodec.createDecoderByType(mediaFormatMime)
         mediaCodec?.setCallback(object : MediaCodec.Callback() {
             override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
-                lock.lock()
                 val mediaExtractor = this@HWPlayer.mediaExtractor ?: return
                 var inputBuffer: ByteBuffer? = null
                 try {
@@ -170,7 +163,6 @@ class HWPlayer(private val context: Context) : BasePlayer() {
                     codec.queueInputBuffer(index, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
 
                 }
-                lock.unlock()
             }
 
             override fun onOutputBufferAvailable(
@@ -178,16 +170,12 @@ class HWPlayer(private val context: Context) : BasePlayer() {
                 index: Int,
                 info: MediaCodec.BufferInfo
             ) {
-                lock.lock()
                 if (info.flags.and(MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0 && !playParams.loop) {
                     Log.d(TAG, "outputFinish")
-                    lock.lock()
                     playParams.playStats = PlayState.STOP
-                    lock.unlock()
                     return
                 }
                 outputIndexQueue.add(index)
-                lock.unlock()
             }
 
             override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
@@ -197,54 +185,42 @@ class HWPlayer(private val context: Context) : BasePlayer() {
             override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
             }
 
-        }, handler)
+        })
 
-        lock.lock()
         playParams.playStats = PlayState.PLAYING
-        lock.unlock()
 
         mediaCodec?.configure(mediaFormat, surface, null, 0)
         mediaCodec?.start()
     }
 
     override fun pause() {
-        lock.lock()
         playParams.playStats = PlayState.PAUSED
         handler.removeCallbacksAndMessages(null)
-        lock.unlock()
     }
 
     override fun stop() {
         super.stop()
-        lock.lock()
         playParams.playStats = PlayState.STOP
         mediaExtractor?.release()
         mediaCodec?.release()
         handler.removeCallbacksAndMessages(null)
-        lock.unlock()
     }
 
     override fun seekTo(ptsUs: Long, mode: Int) {
         if (ptsUs < 0L) return
-        lock.lock()
         playParams.seekPts = ptsUs
         playParams.seekMode = mode
-        lock.unlock()
     }
 
     override fun release() {
         super.release()
-        lock.lock()
         playParams.playStats = PlayState.STOP
         mediaExtractor?.release()
-        mediaCodec?.stop()
         mediaCodec?.release()
         handler.removeCallbacksAndMessages(null)
-        playThread.quitSafely()
         runnable = null
         mediaExtractor = null
         mediaCodec = null
-        lock.unlock()
     }
 
 }
