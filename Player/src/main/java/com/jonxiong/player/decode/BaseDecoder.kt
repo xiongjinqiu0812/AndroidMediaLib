@@ -1,12 +1,14 @@
-package com.jonxiong.player.a_player
+package com.jonxiong.player.decode
 
 import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.util.Log
-import com.jonxiong.player.PlayParams
-import com.jonxiong.player.PlayState
+import androidx.annotation.CallSuper
+import com.jonxiong.player.a_player.MediaExtractorWrapper
+import com.jonxiong.player.a_player.PlayParams
+import com.jonxiong.player.a_player.PlayState
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -54,8 +56,19 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
 
         configMediaCodec()
 
-        var isFinish = false
+        try {
+            doFrame()
+        } catch (e: Exception) {
+            Log.e(TAG, e.message, e)
+        }
 
+        releaseDecoder()
+
+        lock.unlock()
+    }
+
+    private fun doFrame() {
+        var isFinish = false
         while (!isFinish) {
             if (decodeState == PlayState.STOP) {
                 Log.d(TAG, "PlayState.STOP, break")
@@ -64,6 +77,8 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
             //是否暂停
             while (decodeState == PlayState.PAUSED) {
                 Log.d(TAG, "PlayState.PAUSED, wait")
+                playParams.syncInfo.startVideoUsExpired.compareAndSet(false, true)
+                Log.d(TAG, "startVideoUs expired")
                 condition.await()
             }
 
@@ -110,13 +125,8 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
                         decodeState = PlayState.STOP
                     }
                 }
-                condition.await(getSyncTime(), TimeUnit.MICROSECONDS)
             }
         }
-
-        releaseDecoder()
-
-        lock.unlock()
     }
 
     private fun initMediaCodec(): Boolean {
@@ -134,14 +144,13 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         return false
     }
 
+    @CallSuper
     override fun releaseDecoder() {
         mediaCodec?.release()
-        Log.d(TAG, "mediaCodec release")
+        Log.d(TAG, "mediaCodec release ${mediaCodec?.hashCode()}")
         extractor?.release()
         Log.d(TAG, "extractor release")
     }
-
-    abstract fun getSyncTime(): Long
 
     abstract fun configMediaCodec()
 

@@ -1,5 +1,6 @@
 package com.jonxiong.player.a_player
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 class CodecSyncInfo private constructor() {
@@ -9,6 +10,9 @@ class CodecSyncInfo private constructor() {
     //没有目标时，视频轨道同步信息
     var startVideoUs = AtomicLong(0)
     var lastVideoPts = AtomicLong(0)
+
+    //startVideoUs是否过期
+    var startVideoUsExpired = AtomicBoolean(false)
 
     companion object {
         fun create(): CodecSyncInfo {

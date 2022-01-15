@@ -5,8 +5,9 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.Surface
-import com.jonxiong.player.PlayParams
-import com.jonxiong.player.PlayState
+import com.jonxiong.player.decode.AudioDecoder
+import com.jonxiong.player.decode.IDecoder
+import com.jonxiong.player.decode.VideoDecoder
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -98,7 +99,7 @@ class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
 
     override fun releasePlayer() {
         stop()
-        executorService.shutdown()
+//        executorService.shutdown()
         Log.d(TAG, "release player")
     }
 

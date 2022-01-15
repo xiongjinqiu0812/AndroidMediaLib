@@ -6,7 +6,7 @@
 
     <application>
         <activity
-            android:name="com.jonxiong.player.decode.VideoPlayActivity"
+            android:name="com.jonxiong.player.VideoPlayActivity"
             android:exported="false" />
         <activity
             android:name="com.jonxiong.player.record.CameraActivity"

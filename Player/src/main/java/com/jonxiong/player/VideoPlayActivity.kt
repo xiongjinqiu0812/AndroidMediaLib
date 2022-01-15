@@ -1,21 +1,21 @@
-package com.jonxiong.player.decode
+package com.jonxiong.player
 
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.jonxiong.player.PlayParams
-import com.jonxiong.player.R
 import com.jonxiong.player.a_player.BasePlayer
+import com.jonxiong.player.a_player.PlayParams
 
 
 class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
     companion object {
-        const val TAG: String = "VideoPlayActivity"
+        const val TAG: String = "JON_VideoPlayActivity"
         const val videoName: String = "baby.mp4"
     }
 
@@ -57,6 +57,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d(TAG, "onDestroy")
         player?.releasePlayer()
     }
 
@@ -64,7 +65,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
     override fun surfaceCreated(holder: SurfaceHolder) {
         player = BasePlayer(this, holder.surface).apply {
             params.loop = true
-            params.avFlag = PlayParams.VIDEO_FLAG
+//            params.avFlag = PlayParams.VIDEO_FLAG
         }
     }
 

@@ -1,4 +1,4 @@
-package com.jonxiong.player
+package com.jonxiong.player.a_player
 
 interface OnPlayListener {
     fun onStart()

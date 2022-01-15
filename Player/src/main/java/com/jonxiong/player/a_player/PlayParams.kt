@@ -1,7 +1,6 @@
-package com.jonxiong.player
+package com.jonxiong.player.a_player
 
 import android.media.MediaExtractor
-import com.jonxiong.player.a_player.CodecSyncInfo
 
 class PlayParams {
 
@@ -13,7 +12,6 @@ class PlayParams {
     var avFlag = VIDEO_FLAG or AUDIO_FLAG
     val syncInfo = CodecSyncInfo.create()
 
-//    var playState = PlayState.UN_KNOW
     var url: String = ""
     var loop: Boolean = false
     var seekPts: Long = -1L
@@ -21,7 +19,6 @@ class PlayParams {
     var frameInterval = 16L
 
     fun reset() {
-//        playState = PlayState.UN_KNOW
         url = ""
         loop = false
         seekPts = -1L
