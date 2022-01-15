@@ -8,6 +8,7 @@ import android.view.Surface
 import com.jonxiong.player.decode.AudioDecoder
 import com.jonxiong.player.decode.IDecoder
 import com.jonxiong.player.decode.VideoDecoder
+import com.jonxiong.player.render.OnRenderListener
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -23,22 +24,33 @@ class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
     var audioDecoder: IDecoder? = null
     var videoDecoder: IDecoder? = null
 
+    var audioRenderListener: OnRenderListener? = null
+    var videoRenderListener: OnRenderListener? = null
+
     private var executorService: ExecutorService = Executors.newFixedThreadPool(2)
     private var uiHandler: Handler? = null
 
     private fun initPlayer() {
         when (params.avFlag) {
             PlayParams.VIDEO_FLAG -> {
-                videoDecoder = VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface)
+                videoDecoder = VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface).apply {
+                    onRenderListener = videoRenderListener
+                }
                 playState = PlayState.PREPARE
             }
             PlayParams.AUDIO_FLAG -> {
-                audioDecoder = AudioDecoder(PlayParams.AUDIO_FLAG, context, params)
+                audioDecoder = AudioDecoder(PlayParams.AUDIO_FLAG, context, params).apply {
+                    onRenderListener = audioRenderListener
+                }
                 playState = PlayState.PREPARE
             }
             PlayParams.VIDEO_FLAG or PlayParams.AUDIO_FLAG -> {
-                audioDecoder = AudioDecoder(PlayParams.AUDIO_FLAG, context, params)
-                videoDecoder = VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface)
+                audioDecoder = AudioDecoder(PlayParams.AUDIO_FLAG, context, params).apply {
+                    onRenderListener = audioRenderListener
+                }
+                videoDecoder = VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface).apply {
+                    onRenderListener = videoRenderListener
+                }
                 playState = PlayState.PREPARE
             }
             else -> playState = PlayState.UN_KNOW

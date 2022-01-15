@@ -10,3 +10,4 @@ rootProject.name = "AndroidMediaLib"
 include ':app'
 include ':Player'
 include ':Encapsulator'
+include ':OpenGLLib'

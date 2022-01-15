@@ -9,8 +9,8 @@ import androidx.annotation.CallSuper
 import com.jonxiong.player.a_player.MediaExtractorWrapper
 import com.jonxiong.player.a_player.PlayParams
 import com.jonxiong.player.a_player.PlayState
+import com.jonxiong.player.render.OnRenderListener
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.math.max
 
@@ -31,7 +31,7 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
 
     private val mInfo = MediaCodec.BufferInfo()
 
-//    protected var mOnRenderListener: OnRenderListener? = null
+    var onRenderListener: OnRenderListener? = null
 
 
     override fun changeState(state: PlayState) {
@@ -51,6 +51,8 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         if (!initMediaCodec()) {
             return
         }
+
+        Log.d(TAG, "thread = ${Thread.currentThread().name}")
 
         decodeState = PlayState.PLAYING
 

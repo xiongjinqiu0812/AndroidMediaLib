@@ -29,9 +29,9 @@ class VideoDecoder(avFlag: Int, context: Context, playParams: PlayParams, var su
             updateVideoStartUs(info.presentationTimeUs)
             videoTimeSync(info.presentationTimeUs)
             mediaCodec.releaseOutputBuffer(outputId, true)
-//            if (mOnRenderListener != null) {
-//                mOnRenderListener.onFrameRender(info.presentationTimeUs)
-//            }
+
+            onRenderListener?.onFrameRender(info.presentationTimeUs)
+
             playParams.syncInfo.lastVideoPts.set(info.presentationTimeUs)
             if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
                 Log.d(TAG, "video BUFFER_FLAG_END_OF_STREAM, finished")
