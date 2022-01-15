@@ -11,6 +11,7 @@ import com.jonxiong.player.a_player.PlayParams
 import com.jonxiong.player.a_player.PlayState
 import com.jonxiong.player.render.OnRenderListener
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.math.max
 
@@ -127,6 +128,8 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
                         decodeState = PlayState.STOP
                     }
                 }
+                //释放锁，让解码器可以响应播放器暂停、结束事件
+                condition.await(1, TimeUnit.MICROSECONDS)
             }
         }
     }

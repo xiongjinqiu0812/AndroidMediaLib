@@ -33,7 +33,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
     private var player: BasePlayer? = null
 
-    private var useGL = false
+    private var useGL = true
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,7 +57,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
                         player = BasePlayer(this@VideoPlayActivity, surface).apply {
                             params.loop = true
-                            params.avFlag = PlayParams.VIDEO_FLAG
+//                            params.avFlag = PlayParams.VIDEO_FLAG
                             videoRenderListener = object : OnRenderListener {
                                 override fun onFrameRender(presentationTimeUs: Long) {
                                     glSurfaceView.requestRender()
@@ -96,7 +96,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
         if (useGL) return
         player = BasePlayer(this, holder.surface).apply {
             params.loop = true
-            params.avFlag = PlayParams.VIDEO_FLAG
+//            params.avFlag = PlayParams.VIDEO_FLAG
         }
     }
 
