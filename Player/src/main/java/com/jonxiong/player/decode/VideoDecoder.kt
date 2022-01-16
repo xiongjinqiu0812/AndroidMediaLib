@@ -64,7 +64,9 @@ class VideoDecoder(avFlag: Int, context: Context, playParams: PlayParams, var su
         delayTime = min(max(0, delayTime), 100000)
 //        Log.d(TAG, "delayTime = $delayTime")
         if (delayTime > 0) {
+            lock.lock()
             condition.await(delayTime, TimeUnit.MICROSECONDS)
+            lock.unlock()
         }
     }
 

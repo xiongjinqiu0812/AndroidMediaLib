@@ -46,7 +46,6 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
     }
 
     override fun run() {
-        lock.lock()
 
         //初始化
         if (!initMediaCodec()) {
@@ -67,7 +66,6 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
 
         releaseDecoder()
 
-        lock.unlock()
     }
 
     private fun doFrame() {
@@ -82,7 +80,9 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
                 Log.d(TAG, "PlayState.PAUSED, wait")
                 playParams.syncInfo.startVideoUsExpired.compareAndSet(false, true)
                 Log.d(TAG, "startVideoUs expired")
+                lock.lock()
                 condition.await()
+                lock.unlock()
             }
 
             while (decodeState == PlayState.PLAYING) {
@@ -128,8 +128,6 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
                         decodeState = PlayState.STOP
                     }
                 }
-                //释放锁，让解码器可以响应播放器暂停、结束事件
-                condition.await(1, TimeUnit.MICROSECONDS)
             }
         }
     }
