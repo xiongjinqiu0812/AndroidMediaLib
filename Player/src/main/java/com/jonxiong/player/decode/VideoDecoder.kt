@@ -5,7 +5,7 @@ import android.media.MediaCodec
 import android.os.SystemClock
 import android.util.Log
 import android.view.Surface
-import com.jonxiong.player.a_player.PlayParams
+import com.jonxiong.player.PlayParams
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
 import kotlin.math.min

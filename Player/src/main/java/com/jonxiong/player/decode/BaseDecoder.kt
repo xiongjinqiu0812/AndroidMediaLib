@@ -6,12 +6,10 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.util.Log
 import androidx.annotation.CallSuper
-import com.jonxiong.player.a_player.MediaExtractorWrapper
-import com.jonxiong.player.a_player.PlayParams
-import com.jonxiong.player.a_player.PlayState
+import com.jonxiong.player.PlayParams
+import com.jonxiong.player.PlayState
 import com.jonxiong.player.render.OnRenderListener
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.math.max
 

@@ -9,8 +9,6 @@ import android.view.SurfaceView
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.jonxiong.player.a_player.BasePlayer
-import com.jonxiong.player.a_player.PlayParams
 import com.jonxiong.player.render.OnGLSurfaceReadyListener
 import com.jonxiong.player.render.OnRenderListener
 import com.jonxiong.player.render.VideoGLRender
@@ -20,7 +18,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
     companion object {
         const val TAG: String = "JON_VideoPlayActivity"
-        const val videoName: String = "baby.mp4"
+        const val videoName: String = "midway.mp4"
     }
 
     private lateinit var surfaceView: SurfaceView

@@ -1,6 +1,6 @@
 package com.jonxiong.player.decode
 
-import com.jonxiong.player.a_player.PlayState
+import com.jonxiong.player.PlayState
 
 interface IDecoder : Runnable {
 

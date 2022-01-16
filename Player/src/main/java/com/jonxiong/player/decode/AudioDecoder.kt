@@ -4,7 +4,7 @@ import android.content.Context
 import android.media.AudioTrack
 import android.media.MediaCodec
 import android.util.Log
-import com.jonxiong.player.a_player.PlayParams
+import com.jonxiong.player.PlayParams
 import java.lang.Exception
 import java.nio.ByteBuffer
 
