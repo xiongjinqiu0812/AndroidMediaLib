@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.text.TextUtils
+import android.util.Log
 import com.jonxiong.player.PlayParams
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -15,12 +16,22 @@ class MediaExtractorWrapper(avFlag: Int = PlayParams.VIDEO_FLAG, context: Contex
     var mediaExtractor: MediaExtractor? = null
     var mediaFormat: MediaFormat? = null
     var trackId = -1
+    var duration: Long = -1L
+    /**
+     * 获取当前帧的时间戳
+     */
+    var sampleTime: Long = 0
+
+    /**
+     * 获取当前帧的标志位
+     */
+    var sampleFlags = 0
 
     init {
         try {
             mediaExtractor = MediaExtractor()
             val afd = context.assets.openFd(url)
-            mediaExtractor!!.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+            mediaExtractor?.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -41,21 +52,14 @@ class MediaExtractorWrapper(avFlag: Int = PlayParams.VIDEO_FLAG, context: Contex
             if (avFlag == PlayParams.VIDEO_FLAG && mime?.startsWith("video") == true) {
                 trackId = i
                 mediaFormat = format
+                duration = mediaFormat?.getLong(MediaFormat.KEY_DURATION) ?: -1L
                 break
             }
 
         }
     }
 
-    /**
-     * 获取当前帧的时间戳
-     */
-    var sampleTime: Long = 0
 
-    /**
-     * 获取当前帧的标志位
-     */
-    var sampleFlags = 0
 
     fun selectTrack(trackId: Int) {
         mediaExtractor?.selectTrack(trackId)
@@ -75,8 +79,12 @@ class MediaExtractorWrapper(avFlag: Int = PlayParams.VIDEO_FLAG, context: Contex
         }
         sampleTime = mediaExtractor.sampleTime
         sampleFlags = mediaExtractor.sampleFlags
-        mediaExtractor.advance()
+
         return bufferCount
+    }
+
+    fun advance() {
+        mediaExtractor?.advance()
     }
 
     fun seekTo(timeUs: Long, mode: Int) {

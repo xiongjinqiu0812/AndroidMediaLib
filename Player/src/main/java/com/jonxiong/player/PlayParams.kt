@@ -1,7 +1,5 @@
 package com.jonxiong.player
 
-import android.media.MediaExtractor
-
 class PlayParams {
 
     companion object {
@@ -14,14 +12,10 @@ class PlayParams {
 
     var url: String = ""
     var loop: Boolean = false
-    var seekPts: Long = -1L
-    var seekMode: Int = MediaExtractor.SEEK_TO_CLOSEST_SYNC
 
     fun reset() {
         url = ""
         loop = false
-        seekPts = -1L
-        seekMode = MediaExtractor.SEEK_TO_CLOSEST_SYNC
         syncInfo.reset()
     }
 }

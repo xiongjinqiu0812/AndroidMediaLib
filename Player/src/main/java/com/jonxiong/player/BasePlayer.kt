@@ -109,9 +109,15 @@ class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
         Log.d(TAG, "stop player")
     }
 
+    override fun seekTo(pts: Long) {
+        audioDecoder?.seekTo(pts)
+        videoDecoder?.seekTo(pts)
+        Log.d(TAG, "seekTo pts")
+    }
+
     override fun releasePlayer() {
         stop()
-//        executorService.shutdown()
+        executorService.shutdown()
         Log.d(TAG, "release player")
     }
 

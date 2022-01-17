@@ -2,6 +2,8 @@ package com.jonxiong.player
 
 import android.opengl.GLSurfaceView
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
@@ -30,6 +32,8 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
 
     private var player: BasePlayer? = null
+
+    private val handler = Handler(Looper.getMainLooper())
 
     private var useGL = true
 
@@ -74,13 +78,20 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
         }
 
         play = findViewById(R.id.play)
-        play.setOnClickListener { player?.play(videoName) }
+        play.setOnClickListener {
+            player?.play(videoName)
+//            handler.postDelayed({
+//                player?.seekTo(8 * 1000000L)
+//            }, 3000)
+        }
 
         pause = findViewById(R.id.pause)
         pause.setOnClickListener { player?.pause() }
 
         stop = findViewById(R.id.stop)
         stop.setOnClickListener { player?.stop() }
+
+
     }
 
     override fun onDestroy() {
