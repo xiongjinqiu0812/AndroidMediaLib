@@ -109,8 +109,6 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
             while (decodeState == PlayState.PAUSED) {
                 isPause = true
                 Log.d(TAG, "PlayState.PAUSED, wait")
-                playParams.syncInfo.startVideoUsExpired.compareAndSet(false, true)
-                Log.d(TAG, "startVideoUs expired")
                 lock.lock()
                 condition.await()
                 lock.unlock()
@@ -127,6 +125,7 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
                 if (seekPts >= 0) {
                     try {
                         extractor?.seekTo(seekPts, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+                        syncData.reset(SystemClock.elapsedRealtime(), seekPts)
                         Log.d(TAG, "seek to $seekPts")
                     } catch (e: Exception) {
                         Log.e(TAG, "seek fail", e)
@@ -141,9 +140,15 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
 
                 readSampleData(mediaCodec, extractor)
                 if (writeSampleData(mediaCodec, tempInfo)) {
-                    lock.lock()
-                    decodeState = PlayState.STOP
-                    lock.unlock()
+                    if (playParams.loop) {
+                        mediaCodec.flush()
+                        syncData.reset(SystemClock.elapsedRealtime(), seekPts)
+                        Log.d(TAG, "replay")
+                    } else {
+                        lock.lock()
+                        decodeState = PlayState.STOP
+                        lock.unlock()
+                    }
                 }
 
             }
@@ -179,13 +184,10 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
                 val sampleTime = if (size >= 0) extractor.sampleTime else 0L
                 var sampleFlags = if (size >= 0) extractor.sampleFlags else 1
                 if (size < 0) {
-//                    if (!playParams.loop) {
-//                        sampleFlags = MediaCodec.BUFFER_FLAG_END_OF_STREAM
-//                        Log.d(TAG, "send MediaCodec.BUFFER_FLAG_END_OF_STREAM")
-//                    } else {
-//                        extractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
-//                    }
                     sampleFlags = MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                    if (playParams.loop) {
+                        extractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+                    }
                 }
                 mediaCodec.queueInputBuffer(
                     inputBufferId,

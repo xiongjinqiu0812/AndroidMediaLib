@@ -8,7 +8,6 @@ class PlayParams {
     }
 
     var avFlag = VIDEO_FLAG or AUDIO_FLAG
-    val syncInfo = CodecSyncInfo.create()
 
     var url: String = ""
     var loop: Boolean = false
@@ -16,6 +15,5 @@ class PlayParams {
     fun reset() {
         url = ""
         loop = false
-        syncInfo.reset()
     }
 }

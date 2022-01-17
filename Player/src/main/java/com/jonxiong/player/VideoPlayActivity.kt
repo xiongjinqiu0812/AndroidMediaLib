@@ -29,6 +29,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
     private lateinit var play: Button
     private lateinit var pause: Button
     private lateinit var stop: Button
+    private lateinit var change: Button
 
 
     private var player: BasePlayer? = null
@@ -59,7 +60,6 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
                         player = BasePlayer(this@VideoPlayActivity, surface).apply {
                             params.loop = true
-//                            params.avFlag = PlayParams.VIDEO_FLAG
                             videoRenderListener = object : OnRenderListener {
                                 override fun onFrameRender(presentationTimeUs: Long) {
                                     glSurfaceView.requestRender()
@@ -70,7 +70,9 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
                 }
             }
             glSurfaceView.setEGLContextClientVersion(3)
-            glSurfaceView.setRenderer(render)
+            render?.let {
+                glSurfaceView.setRenderer(it)
+            }
             glSurfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         } else {
             surfaceView.visibility = View.VISIBLE
@@ -80,9 +82,9 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
         play = findViewById(R.id.play)
         play.setOnClickListener {
             player?.play(videoName)
-//            handler.postDelayed({
-//                player?.seekTo(8 * 1000000L)
-//            }, 3000)
+            handler.postDelayed({
+                player?.seekTo(8 * 1000000L)
+            }, 3000)
         }
 
         pause = findViewById(R.id.pause)
@@ -91,6 +93,8 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
         stop = findViewById(R.id.stop)
         stop.setOnClickListener { player?.stop() }
 
+        change = findViewById(R.id.change)
+        change.setOnClickListener { player?.play("baby.mp4") }
 
     }
 
