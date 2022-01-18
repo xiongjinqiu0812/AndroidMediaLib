@@ -75,7 +75,7 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
     private fun waitLastVideoStop() {
         lock.lock()
         while (decodeState != PlayState.UN_KNOW) {
-            condition.await()
+            condition.await(500, TimeUnit.MILLISECONDS)
         }
         lock.unlock()
     }
@@ -254,6 +254,7 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         Log.d(TAG, "extractor release")
         lock.lock()
         decodeState = PlayState.UN_KNOW
+        condition.signalAll()
         lock.unlock()
     }
 

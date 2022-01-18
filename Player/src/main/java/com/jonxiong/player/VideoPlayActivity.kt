@@ -82,9 +82,9 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
         play = findViewById(R.id.play)
         play.setOnClickListener {
             player?.play(videoName)
-            handler.postDelayed({
-                player?.seekTo(8 * 1000000L)
-            }, 3000)
+//            handler.postDelayed({
+//                player?.seekTo(8 * 1000000L)
+//            }, 3000)
         }
 
         pause = findViewById(R.id.pause)
