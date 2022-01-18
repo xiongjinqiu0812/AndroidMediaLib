@@ -72,14 +72,23 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         }
     }
 
+    private fun waitLastVideoStop() {
+        lock.lock()
+        while (decodeState != PlayState.UN_KNOW) {
+            condition.await()
+        }
+        lock.unlock()
+    }
+
     override fun run() {
+
+        //等待上一个视频播放结束
+        waitLastVideoStop()
 
         //初始化
         if (!initMediaCodec()) {
             return
         }
-
-        Log.d(TAG, "thread = ${Thread.currentThread().name} duration = ${extractor?.duration}")
 
         decodeState = PlayState.PLAYING
 
@@ -243,6 +252,9 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         Log.d(TAG, "mediaCodec release ${mediaCodec?.hashCode()}")
         extractor?.release()
         Log.d(TAG, "extractor release")
+        lock.lock()
+        decodeState = PlayState.UN_KNOW
+        lock.unlock()
     }
 
     abstract fun configMediaCodec()

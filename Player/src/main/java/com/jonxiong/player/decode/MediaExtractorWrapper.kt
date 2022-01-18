@@ -4,7 +4,6 @@ import android.content.Context
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.text.TextUtils
-import android.util.Log
 import com.jonxiong.player.PlayParams
 import java.io.IOException
 import java.nio.ByteBuffer

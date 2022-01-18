@@ -5,8 +5,6 @@ import android.media.AudioTrack
 import android.media.MediaCodec
 import android.util.Log
 import com.jonxiong.player.PlayParams
-import java.lang.Exception
-import java.nio.ByteBuffer
 
 class AudioDecoder(avFlag: Int, context: Context, playParams: PlayParams) :
     BaseDecoder(avFlag, context, playParams) {
