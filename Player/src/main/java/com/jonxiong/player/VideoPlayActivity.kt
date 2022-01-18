@@ -4,13 +4,13 @@ import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.huawei.commom.LogUtil
 import com.jonxiong.player.render.OnGLSurfaceReadyListener
 import com.jonxiong.player.render.OnRenderListener
 import com.jonxiong.player.render.VideoGLRender
@@ -55,7 +55,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
             render = VideoGLRender(this).apply {
                 listener = object : OnGLSurfaceReadyListener {
                     override fun onGLSurfaceReady(surface: Surface?) {
-                        Log.d(TAG, "onGLSurfaceReady")
+                        LogUtil.d(TAG, "onGLSurfaceReady")
                         if (surface == null) return
 
                         player = BasePlayer(this@VideoPlayActivity, surface).apply {
@@ -100,7 +100,7 @@ class VideoPlayActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "onDestroy")
+        LogUtil.d(TAG, "onDestroy")
         player?.releasePlayer()
     }
 

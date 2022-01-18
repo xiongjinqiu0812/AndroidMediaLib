@@ -3,8 +3,8 @@ package com.jonxiong.player
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.Surface
+import com.huawei.commom.LogUtil
 import com.jonxiong.player.decode.AudioDecoder
 import com.jonxiong.player.decode.IDecoder
 import com.jonxiong.player.decode.VideoDecoder
@@ -33,31 +33,33 @@ class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
     private fun initPlayer() {
         when (params.avFlag) {
             PlayParams.VIDEO_FLAG -> {
-                videoDecoder = VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface).apply {
-                    onRenderListener = videoRenderListener
-                }
+                videoDecoder = createVideoDecoder()
                 playState = PlayState.PREPARE
             }
             PlayParams.AUDIO_FLAG -> {
-                audioDecoder = AudioDecoder(PlayParams.AUDIO_FLAG, context, params).apply {
-                    onRenderListener = audioRenderListener
-                }
+                audioDecoder = createAudioDecoder()
                 playState = PlayState.PREPARE
             }
             PlayParams.VIDEO_FLAG or PlayParams.AUDIO_FLAG -> {
-                audioDecoder = AudioDecoder(PlayParams.AUDIO_FLAG, context, params).apply {
-                    onRenderListener = audioRenderListener
-                }
-                videoDecoder = VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface).apply {
-                    onRenderListener = videoRenderListener
-                }
+                audioDecoder = createAudioDecoder()
+                videoDecoder = createVideoDecoder()
                 playState = PlayState.PREPARE
             }
             else -> playState = PlayState.UN_KNOW
         }
 
-        Log.d(TAG, "init player")
+        LogUtil.d(TAG, "init player")
     }
+
+    private fun createVideoDecoder() =
+        VideoDecoder(PlayParams.VIDEO_FLAG, context, params, surface).apply {
+            onRenderListener = videoRenderListener
+        }
+
+    private fun createAudioDecoder() =
+        AudioDecoder(PlayParams.AUDIO_FLAG, context, params).apply {
+            onRenderListener = audioRenderListener
+        }
 
     override fun play(url: String) {
 
@@ -92,33 +94,33 @@ class BasePlayer(var context: Context, var surface: Surface) : IPlayer {
             executorService.execute(it)
         }
 
-        Log.d(TAG, "start player")
+        LogUtil.d(TAG, "start player")
     }
 
     override fun pause() {
         playState = PlayState.PAUSED
         audioDecoder?.changeState(PlayState.PAUSED)
         videoDecoder?.changeState(PlayState.PAUSED)
-        Log.d(TAG, "pause player")
+        LogUtil.d(TAG, "pause player")
     }
 
     override fun stop() {
         playState = PlayState.STOP
         audioDecoder?.changeState(PlayState.STOP)
         videoDecoder?.changeState(PlayState.STOP)
-        Log.d(TAG, "stop player")
+        LogUtil.d(TAG, "stop player")
     }
 
     override fun seekTo(pts: Long) {
         audioDecoder?.seekTo(pts)
         videoDecoder?.seekTo(pts)
-        Log.d(TAG, "seekTo pts")
+        LogUtil.d(TAG, "seekTo pts")
     }
 
     override fun releasePlayer() {
         stop()
         executorService.shutdown()
-        Log.d(TAG, "release player")
+        LogUtil.d(TAG, "release player")
     }
 
     override fun onStart() {

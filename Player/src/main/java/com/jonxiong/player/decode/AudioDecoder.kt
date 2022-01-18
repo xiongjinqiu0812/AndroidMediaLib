@@ -3,13 +3,13 @@ package com.jonxiong.player.decode
 import android.content.Context
 import android.media.AudioTrack
 import android.media.MediaCodec
-import android.util.Log
+import com.huawei.commom.LogUtil
 import com.jonxiong.player.PlayParams
 
 class AudioDecoder(avFlag: Int, context: Context, playParams: PlayParams) :
     BaseDecoder(avFlag, context, playParams) {
     companion object {
-        private const val TAG = "AudioDecoder"
+        private const val TAG = "JON_AudioDecoder"
     }
 
     private var audioTrack: AudioTrack? = null
@@ -42,7 +42,7 @@ class AudioDecoder(avFlag: Int, context: Context, playParams: PlayParams) :
             }
         }
         audioTrack?.release()
-        Log.d(TAG, "audioTrack release")
+        LogUtil.d(TAG, "audioTrack release")
     }
 
 

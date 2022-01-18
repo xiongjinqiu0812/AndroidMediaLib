@@ -5,8 +5,8 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.SystemClock
-import android.util.Log
 import androidx.annotation.CallSuper
+import com.huawei.commom.LogUtil
 import com.jonxiong.player.PlayParams
 import com.jonxiong.player.PlayState
 import com.jonxiong.player.render.OnRenderListener
@@ -25,7 +25,7 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         fun reset(currentTimeMs: Long, currentPtsUs: Long) {
             startTimeMs = currentTimeMs
             startPtsUs = currentPtsUs
-            Log.d("SyncData", "startTimeMs = $startTimeMs   startPtsUs = $startPtsUs")
+            LogUtil.d("SyncData", "startTimeMs = $startTimeMs   startPtsUs = $startPtsUs")
         }
 
         fun getDelayTime(currentTimeMs: Long, currentPtsUs: Long): Long {
@@ -100,7 +100,7 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         try {
             loopForDecode()
         } catch (e: Exception) {
-            Log.e(TAG, e.message, e)
+            LogUtil.e(TAG, e.message, e)
         }
 
         releaseDecoder()
@@ -110,14 +110,14 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
         var isFinish = false
         while (!isFinish) {
             if (decodeState == PlayState.STOP) {
-                Log.d(TAG, "PlayState.STOP, break")
+                LogUtil.d(TAG, "PlayState.STOP, break")
                 break
             }
             //是否暂停
             var isPause = false
             while (decodeState == PlayState.PAUSED) {
                 isPause = true
-                Log.d(TAG, "PlayState.PAUSED, wait")
+                LogUtil.d(TAG, "PlayState.PAUSED, wait")
                 lock.lock()
                 condition.await()
                 lock.unlock()
@@ -135,9 +135,9 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
                     try {
                         extractor?.seekTo(seekPts, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
                         syncData.reset(SystemClock.elapsedRealtime(), seekPts)
-                        Log.d(TAG, "seek to $seekPts")
+                        LogUtil.d(TAG, "seek to $seekPts")
                     } catch (e: Exception) {
-                        Log.e(TAG, "seek fail", e)
+                        LogUtil.e(TAG, "seek fail", e)
                     } finally {
                         seekPts = -1L
                     }
@@ -152,7 +152,7 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
                     if (playParams.loop) {
                         mediaCodec.flush()
                         syncData.reset(SystemClock.elapsedRealtime(), seekPts)
-                        Log.d(TAG, "replay")
+                        LogUtil.d(TAG, "replay")
                     } else {
                         lock.lock()
                         decodeState = PlayState.STOP
@@ -229,7 +229,7 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
             lock.unlock()
 
             if (info.flags == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
-                Log.d(TAG, "BUFFER_FLAG_END_OF_STREAM, finished")
+                LogUtil.d(TAG, "BUFFER_FLAG_END_OF_STREAM, finished")
                 return true
             }
             outputId = mediaCodec.dequeueOutputBuffer(info, 0)
@@ -249,9 +249,9 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
     @CallSuper
     override fun releaseDecoder() {
         mediaCodec?.release()
-        Log.d(TAG, "mediaCodec release ${mediaCodec?.hashCode()}")
+        LogUtil.d(TAG, "mediaCodec release ${mediaCodec?.hashCode()}")
         extractor?.release()
-        Log.d(TAG, "extractor release")
+        LogUtil.d(TAG, "extractor release")
         lock.lock()
         decodeState = PlayState.UN_KNOW
         condition.signalAll()
