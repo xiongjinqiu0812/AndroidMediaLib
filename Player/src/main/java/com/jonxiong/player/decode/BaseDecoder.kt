@@ -90,7 +90,11 @@ abstract class BaseDecoder(var avFlag: Int, var context: Context, var playParams
             return
         }
 
-        decodeState = PlayState.PLAYING
+        lock.lock()
+        if (decodeState == PlayState.UN_KNOW) {
+            decodeState = PlayState.PLAYING
+        }
+        lock.unlock()
 
         configMediaCodec()
 
